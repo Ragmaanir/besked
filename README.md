@@ -22,7 +22,7 @@ require "besked"
 ```
 
 ### Global event system
-```
+```crystal
 subscriber_called = false
 
 Besked::Global.subscribe(Besked, "test") do |cls, name, event|
@@ -37,7 +37,7 @@ assert subscriber_called
 ```
 
 ### Local pub/sub
-```
+```crystal
 class MyPub
   include Besked::Publisher
 end
@@ -84,4 +84,4 @@ TODO: Write development instructions here
 
 ## Contributors
 
-- [Ragmaanir](https://github.com/ragmaanir) ragmaanir - creator, maintainer
+- [Ragmaanir](https://github.com/ragmaanir) - creator, maintainer
