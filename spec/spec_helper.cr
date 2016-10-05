@@ -1,2 +1,5 @@
 require "../src/besked"
-require "minitest/autorun"
+require "microtest"
+
+include Microtest::DSL
+Microtest.run!

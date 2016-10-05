@@ -1,54 +1,71 @@
 require "./spec_helper"
 
-module Besked_Tests
-  class BeskedTest < Minitest::Test
-    def test_global_subscribers_get_notified
-      subscriber_called = false
-
-      Besked::Global.subscribe(Besked, "test") do |cls, name, event|
-        subscriber_called = true
-      end
-
-      assert !subscriber_called
-
-      Besked::Global.publish(Besked, "test", Besked::Event.new)
-
-      assert subscriber_called
-    end
-
+describe Besked do
+  class MyPub
+    include Besked::Publisher(Int32)
   end
 
-  class LocalSubscribersTest < Minitest::Test
+  class MySub
+    include Besked::Subscriber(Int32)
 
-    class MyPub
-      include Besked::Publisher
+    getter? received : Bool
+    getter events : Array(E)
+
+    def initialize
+      @received = false
+      @events = [] of E
     end
 
-    class MySub
-      include Besked::Subscriber
-
-      getter? received
-
-      def initialize
-        @received = false
-      end
-
-      def receive(type : String, name : String, event : Besked::Event)
-        @received = true
-      end
+    def receive(event : E)
+      @received = true
+      @events << event
     end
+  end
 
-    def test_local_publishers_and_subscribers
-      pub = MyPub.new
-      sub = MySub.new
+  test "local publishers and subscribers" do
+    pub = MyPub.new
+    sub = MySub.new
 
+    pub.subscribe(sub)
+
+    assert !sub.received?
+
+    pub.publish(1337)
+
+    assert sub.received?
+    assert sub.events == [1337]
+  end
+
+  test "subscribe and unsubscribe" do
+    pub = MyPub.new
+    sub = MySub.new
+
+    assert !pub.subscribed?(sub)
+
+    pub.subscribe(sub)
+
+    assert pub.subscribed?(sub)
+
+    pub.unsubscribe(sub)
+
+    assert !pub.subscribed?(sub)
+  end
+
+  test "double subscribe and unsubscribe" do
+    pub = MyPub.new
+    sub = MySub.new
+
+    pub.subscribe(sub)
+    assert_raises(Kontrakt::PreConditionViolation) do
       pub.subscribe(sub)
-
-      assert !sub.received?
-
-      pub.publish(MyPub, "test", Besked::Event.new)
-
-      assert sub.received?
     end
+
+    pub.unsubscribe(sub)
+
+    assert_raises(Kontrakt::PreConditionViolation) do
+      pub.unsubscribe(sub)
+    end
+
+    assert !pub.subscribed?(sub)
   end
 end

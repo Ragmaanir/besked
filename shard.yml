@@ -5,11 +5,12 @@ authors:
   - ragmaanir <ragmaanir@gmail.com>
 
 development_dependencies:
-  minitest:
-    github: ysbaddaden/minitest.cr
-    version: ~> 0.1.5
-  power_assert:
-    github: rosylilly/power_assert.cr
-    version: ~> 0.2.2
+  microtest:
+    github: ragmaanir/microtest
+    branch: master
+
+  kontrakt:
+    github: ragmaanir/kontrakt
+    branch: master
 
 license: MIT

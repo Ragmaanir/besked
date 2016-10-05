@@ -1,78 +1,34 @@
+require "kontrakt"
 require "./besked/*"
 
 module Besked
-
-  class Event
+  module Subscriber(E)
+    abstract def receive(event : E)
   end
 
-  alias NameFilter = (String | Regex)
-
-  module Subscriber
-    abstract def receive(type : String, name : String, event : Event)
-  end
-
-  class SimpleSubscriber
-    include Subscriber
-
-    def initialize(&@block : (String, String, Event) ->)
-    end
-
-    def receive(type : String, name : String, event : Event)
-      @block.call(type, name, event)
-    end
-  end
-
-  module Publisher
-    getter subscribers
+  module Publisher(E)
+    getter subscribers : Array(Subscriber(E))
 
     def initialize
-      @subscribers = [] of Subscriber
+      @subscribers = [] of Subscriber(E)
     end
 
-    def subscribe(subscriber : Subscriber)
+    def subscribed?(subscriber : Subscriber(E))
+      subscribers.includes?(subscriber)
+    end
+
+    def subscribe(subscriber : Subscriber(E))
+      Kontrakt.precondition(!subscribers.includes?(subscriber))
       subscribers << subscriber
     end
 
-    def publish(type : T.class, name : String, event : Event)
-      @subscribers.each{ |s| s.receive(type.name, name, event) }
+    def unsubscribe(subscriber : Subscriber(E))
+      Kontrakt.precondition(subscribers.includes?(subscriber))
+      subscribers.delete(subscriber)
+    end
+
+    def publish(event : E)
+      subscribers.each { |s| s.receive(event) }
     end
   end
-
-  class GlobalPublisher
-
-    class EventFilter
-      getter type, filter
-
-      def initialize(@type : String, @filter = nil : NameFilter?)
-      end
-
-      def passes?(t : String, name : String)
-        type == t && filter === name
-      end
-
-      def ==(other : self)
-        type == other.type && filter == other.filter
-      end
-    end
-
-    # TODO allow multiple subscribers
-    # TODO allow unsubscribing
-    @subscribers = {} of EventFilter => Subscriber
-
-    def subscribe(type : T.class, filter : NameFilter, &block : ((String, String, Event) ->))
-      ef = EventFilter.new(type.name, filter)
-      @subscribers[ef] = SimpleSubscriber.new(&block)
-    end
-
-    def publish(type : T.class, name : String, event : Event)
-      @subscribers.each do |filter, sub|
-        if filter.passes?(type.name, name)
-          sub.receive(type.name, name, event)
-        end
-      end
-    end
-  end
-
-  Global = GlobalPublisher.new
-
 end
