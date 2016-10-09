@@ -19,44 +19,29 @@ dependencies:
 
 ```crystal
 require "besked"
-```
 
-### Global event system
-```crystal
-subscriber_called = false
-
-Besked::Global.subscribe(Besked, "test") do |cls, name, event|
-  subscriber_called = true
-end
-
-assert !subscriber_called
-
-Besked::Global.publish(Besked, "test", Besked::Event.new)
-
-assert subscriber_called
-```
-
-### Local pub/sub
-```crystal
 class MyPub
-  include Besked::Publisher
+  include Besked::Publisher(Int32)
 end
 
 class MySub
-  include Besked::Subscriber
+  include Besked::Subscriber(Int32)
 
-  getter? received
+  getter? received : Bool
+  getter events : Array(E)
 
   def initialize
     @received = false
+    @events = [] of E
   end
 
-  def receive(type : String, name : String, event : Besked::Event)
+  def receive(event : E)
     @received = true
+    @events << event
   end
 end
 
-def test_local_publishers_and_subscribers
+test "local publishers and subscribers" do
   pub = MyPub.new
   sub = MySub.new
 
@@ -64,15 +49,12 @@ def test_local_publishers_and_subscribers
 
   assert !sub.received?
 
-  pub.publish(MyPub, "test", Besked::Event.new)
+  pub.publish(1337)
 
   assert sub.received?
+  assert sub.events == [1337]
 end
 ```
-
-## Development
-
-TODO: Write development instructions here
 
 ## Contributing
 
