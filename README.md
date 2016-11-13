@@ -1,4 +1,4 @@
-# besked
+# besked [![Build Status](https://travis-ci.org/Ragmaanir/besked.svg?branch=master)](https://travis-ci.org/Ragmaanir/besked)
 
 Event System for notifications similar to ActiveSupport Instrumentation.
 
@@ -28,14 +28,14 @@ class MySub
   include Besked::Subscriber(Int32)
 
   getter? received : Bool
-  getter events : Array(E)
+  getter events : Array(Int32)
 
   def initialize
     @received = false
-    @events = [] of E
+    @events = [] of Int32
   end
 
-  def receive(event : E)
+  def receive(event : Int32)
     @received = true
     @events << event
   end
@@ -56,14 +56,3 @@ test "local publishers and subscribers" do
 end
 ```
 
-## Contributing
-
-1. Fork it ( https://github.com/ragmaanir/besked/fork )
-2. Create your feature branch (git checkout -b my-new-feature)
-3. Commit your changes (git commit -am 'Add some feature')
-4. Push to the branch (git push origin my-new-feature)
-5. Create a new Pull Request
-
-## Contributors
-
-- [Ragmaanir](https://github.com/ragmaanir) - creator, maintainer
